@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PandaType - Typing Speed Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f3f3f3;
+        }
+        .container {
+            width: 50%;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .quote {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        .input-area {
+            width: 100%;
+            height: 50px;
+            font-size: 18px;
+            text-align: center;
+        }
+        .stats {
+            margin-top: 20px;
+        }
+        .panda {
+            font-size: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="panda">🐼 PandaType</div>
+        <p class="quote" id="quote">Loading...</p>
+        <textarea id="input" class="input-area" placeholder="Start typing here..."></textarea>
+        <div class="stats">
+            <p>Time: <span id="time">0</span>s</p>
+            <p>WPM: <span id="wpm">0</span></p>
+            <p>Accuracy: <span id="accuracy">100</span>%</p>
+            <button onclick="resetTest()">Restart</button>
+        </div>
+    </div>
+    
+    <script>
+        let quoteText = "";
+        let time = 0, timer;
+        let correctChars = 0, totalChars = 0;
+        const inputArea = document.getElementById("input");
+        const timeDisplay = document.getElementById("time");
+        const wpmDisplay = document.getElementById("wpm");
+        const accuracyDisplay = document.getElementById("accuracy");
+        
+        async function getQuote() {
+            const res = await fetch("https://api.quotable.io/random");
+            const data = await res.json();
+            quoteText = data.content;
+            document.getElementById("quote").textContent = quoteText;
+        }
+        
+        function startTest() {
+            clearInterval(timer);
+            time = 0;
+            correctChars = 0;
+            totalChars = 0;
+            timer = setInterval(() => {
+                time++;
+                timeDisplay.textContent = time;
+                updateStats();
+            }, 1000);
+        }
+        
+        function updateStats() {
+            let words = totalChars / 5;
+            let wpm = time > 0 ? (words / time) * 60 : 0;
+            let accuracy = totalChars > 0 ? (correctChars / totalChars) * 100 : 100;
+            wpmDisplay.textContent = Math.round(wpm);
+            accuracyDisplay.textContent = Math.round(accuracy);
+        }
+        
+        inputArea.addEventListener("input", () => {
+            if (time === 0) startTest();
+            let typedText = inputArea.value;
+            totalChars = typedText.length;
+            correctChars = typedText.split('').filter((char, i) => char === quoteText[i]).length;
+            updateStats();
+        });
+        
+        function resetTest() {
+            inputArea.value = "";
+            getQuote();
+            clearInterval(timer);
+            timeDisplay.textContent = "0";
+            wpmDisplay.textContent = "0";
+            accuracyDisplay.textContent = "100";
+        }
+        
+        getQuote();
+    </script>
+</body>
+</html>
